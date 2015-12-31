@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+EXIT_CODE=0
+
+SOURCES=${SOURCES-/sources}
+TARGET=${TARGET-${SOURCES}}
+WORKSPACE=${WORKSPACE-/workspace}
+
+RPM_BUILD_SOURCES=$(rpmbuild --eval '%{_sourcedir}')
+RPM_BUILD_RPMS=$(rpmbuild --eval '%{_rpmdir}')
+RPM_BUILD_SRPMS=$(rpmbuild --eval '%{_srcrpmdir}')
+
+SPEC_GLOB="*.spec"
+
+# make a copy
+cp -R ${SOURCES}/* ${WORKSPACE}/.
+
+# fix permissions on working copy
+chown root:root ${WORKSPACE}/*
+
+SOURCE_FILES=( $(find ${WORKSPACE} -mindepth 1 -maxdepth 1 -not -name ${SPEC_GLOB}) )
+for source_file in ${SOURCE_FILES[@]}; do
+	cp -R ${source_file} ${RPM_BUILD_SOURCES}/ || EXIT_CODE=1
+done
+
+SPECS=( $(find ${WORKSPACE} -maxdepth 1 -type f -name ${SPEC_GLOB}) )
+# install deps and fetch any external sources
+# then do an RPM BUILD
+for spec_file in ${SPECS[@]}; do
+    yum-builddep -y ${spec_file} || EXIT_CODE=1
+    spectool --sourcedir --get-files ${spec_file} || EXIT_CODE=1
+    rpmbuild ${RPMBUILD_OPTS} -ba --clean ${spec_file} || EXIT_CODE=1
+done
+
+# extract RPMs
+RPMS=( $(find ${RPM_BUILD_RPMS} ${RPM_BUILD_SRPMS} -name "*.rpm") )
+for rpm in ${RPMS[@]}; do
+    mv $rpm ${TARGET} || EXIT_CODE=1
+done
+
+exit ${EXIT_CODE}
