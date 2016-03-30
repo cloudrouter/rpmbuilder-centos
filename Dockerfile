@@ -1,18 +1,18 @@
 # VERSION 0.3
 FROM centos:centos7.2.1511
 MAINTAINER "John Siegrist" <john.siegrist@complects.com>
-ENV REFRESHED_AT 2015-12-30
+ENV REFRESHED_AT 2016-03-30
 
 RUN yum -y updateinfo \
     && yum -y install \
       epel-release \
-      https://repo.cloudrouter.org/centos/7.2/x86_64/cloudrouter-centos-repo-latest.noarch.rpm \
+      https://repo.cloudrouter.org/3/centos/7/x86_64/cloudrouter-centos-repo-latest.noarch.rpm \
+      curl \
       rpm-build \
       rpmdevtools \
-      yum-utils \
       vim \
-      curl \
       wget \
+      yum-utils \
     && yum -y swap -- remove systemd-container-libs -- install systemd-libs \
     && yum -y upgrade \
     && yum clean all
