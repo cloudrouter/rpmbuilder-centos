@@ -1,26 +1,20 @@
-# VERSION 0.3
 FROM centos:centos7.2.1511
 MAINTAINER "John Siegrist" <john.siegrist@complects.com>
-ENV REFRESHED_AT 2016-03-30
+ENV REFRESHED_AT=2016-10-10
+
+ENV TARGET=/target
+ENV RPM_BUILD_DIR=/rpmbuild
+ENV SOURCES=/sources
+ENV WORKSPACE=/workspace
+
+# copy dependencies file
+COPY ./assets/dependencies /var/run/docker-build-deps
 
 RUN yum -y updateinfo \
-    && yum -y install \
-      epel-release \
-      https://repo.cloudrouter.org/3/centos/7/x86_64/cloudrouter-centos-repo-latest.noarch.rpm \
-      curl \
-      rpm-build \
-      rpmdevtools \
-      vim \
-      wget \
-      yum-utils \
+    && yum -y install $(cat /var/run/docker-build-deps) \
     && yum -y swap -- remove systemd-container-libs -- install systemd-libs \
     && yum -y upgrade \
     && yum clean all
-
-ENV TARGET /target
-ENV RPM_BUILD_DIR /rpmbuild
-ENV SOURCES /sources
-ENV WORKSPACE /workspace
 
 WORKDIR ${WORKSPACE}
 
@@ -38,4 +32,4 @@ RUN chmod +x /usr/bin/buildrpm
 
 VOLUME [ "${TARGET}", "${RPM_BUILD_DIR}", "${SOURCES}", "${WORKSPACE}" ]
 
-CMD ["buildrpm"]
+CMD ["/usr/bin/buildrpm"]

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-EXIT_CODE=0
-
 SOURCES=${SOURCES-/sources}
 TARGET=${TARGET-${SOURCES}}
 WORKSPACE=${WORKSPACE-/workspace}
@@ -11,6 +9,9 @@ RPM_BUILD_RPMS=$(rpmbuild --eval '%{_rpmdir}')
 RPM_BUILD_SRPMS=$(rpmbuild --eval '%{_srcrpmdir}')
 
 SPEC_GLOB="*.spec"
+RPM_GLOB="*.rpm"
+
+EXIT_CODE=0
 
 # make a copy
 cp -R ${SOURCES}/* ${WORKSPACE}/.
@@ -33,9 +34,11 @@ for spec_file in ${SPECS[@]}; do
 done
 
 # extract RPMs
-RPMS=( $(find ${RPM_BUILD_RPMS} ${RPM_BUILD_SRPMS} -name "*.rpm") )
-for rpm in ${RPMS[@]}; do
-    mv $rpm ${TARGET} || EXIT_CODE=1
-done
+find ${RPM_BUILD_RPMS} -name ${RPM_GLOB} \
+    -exec mv {} ${TARGET} \; || EXIT_CODE=1
+
+# extract SRPMs
+find ${RPM_BUILD_SRPMS} -name ${RPM_GLOB} \
+    -exec mv {} ${TARGET} \; || EXIT_CODE=1
 
 exit ${EXIT_CODE}

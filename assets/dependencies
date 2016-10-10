@@ -1,0 +1,8 @@
+epel-release
+https://repo.cloudrouter.org/proving_ground/centos/7/x86_64/cloudrouter-centos-test-repo-latest.noarch.rpm
+curl
+rpm-build
+rpmdevtools
+vim
+wget
+yum-utils
